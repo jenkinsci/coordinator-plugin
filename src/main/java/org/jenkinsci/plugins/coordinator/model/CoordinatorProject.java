@@ -51,10 +51,12 @@ public class CoordinatorProject extends
 	
 	private static final Logger LOGGER = Logger.getLogger(CoordinatorProject.class.getName());
 	
+	private TreeNode defaultExecutionPlan;
+	
 	public CoordinatorProject(ItemGroup<?> parent, String name) {
 		super(parent, name);
 	}
-
+	
 	@Override
 	public void onLoad(ItemGroup<? extends Item> parent, String name) throws IOException {
 		super.onLoad(parent, name);
@@ -64,6 +66,7 @@ public class CoordinatorProject extends
 	
 	
 	protected synchronized CoordinatorBuild newBuild() throws IOException {
+		
 		if (!rebuildVersions.isEmpty()) {
 			Integer rebuildVersion = rebuildVersions.remove(0);
 			CoordinatorBuild targetBuild = super.getBuildByNumber(rebuildVersion);
@@ -83,13 +86,21 @@ public class CoordinatorProject extends
 			reset(targetBuild);
 			return targetBuild;
 		} else {
-			CoordinatorBuild cb = super.newBuild();
 			TreeNode brandNewExecutionPlan = this.getCoordinatorBuilder().getExecutionPlan().clone(true);
+			this.setDefaultExecutionPlan(brandNewExecutionPlan);
+			CoordinatorBuild cb = super.newBuild();
 			cb.setOriginalExecutionPlan(brandNewExecutionPlan);
+			cb.setDefaultExecutionPlan(this.defaultExecutionPlan);
 			return cb;
 		}
 	}
 	
+	private void setDefaultExecutionPlan(TreeNode executionPlan) {
+		if (defaultExecutionPlan == null) {
+			this.defaultExecutionPlan = executionPlan;
+		}
+	}
+
 	protected void reset(CoordinatorBuild targetBuild) {
 		Object notStarted = extractNotStartEnumConstant();
 		setField(targetBuild, "state", notStarted);

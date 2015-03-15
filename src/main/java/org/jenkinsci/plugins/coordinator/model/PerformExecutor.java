@@ -83,7 +83,6 @@ public class PerformExecutor {
 		executorPool = Executors.newFixedThreadPool(poolSize);
 	}
 	
-	
 	public boolean execute(){
 		prepareExecutionPlan();
 		kickOffBuild(this.coordinatorBuild.getOriginalExecutionPlan());
@@ -115,12 +114,21 @@ public class PerformExecutor {
 	private void prepareExecutionPlan() {
 		CoordinatorParameterValue parameter = (CoordinatorParameterValue)this.coordinatorBuild.getAction(ParametersAction.class)
 				.getParameter(CoordinatorParameterValue.PARAM_KEY);
-		TreeNode rootNode = parameter.getValue();
+
+		TreeNode rootNode = null;
+		if (parameter == null) {
+			// use default execution plan when the job is scheduled
+			rootNode = this.coordinatorBuild.getDefaultExecutionPlan();
+		} else {
+			rootNode = parameter.getValue();
+		}
+
 		TreeNode.mergeState(this.coordinatorBuild.getOriginalExecutionPlan(), rootNode);
 		parameterMap = new HashMap<String, TreeNode>();
 		for(TreeNode node: rootNode.getFlatNodes(false)){
 			parameterMap.put(node.getId(), node);
 		}
+		
 	}
 	
 	

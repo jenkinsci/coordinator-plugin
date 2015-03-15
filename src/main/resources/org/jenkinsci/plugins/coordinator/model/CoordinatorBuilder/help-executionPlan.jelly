@@ -7,5 +7,5 @@
 	xmlns:t="/lib/hudson" 
 	xmlns:f="/lib/form"
 	xmlns:p="/lib/hudson/project">
-	hello world
+	Checked jobs will be used as default on scheduled execution.
 </j:jelly>

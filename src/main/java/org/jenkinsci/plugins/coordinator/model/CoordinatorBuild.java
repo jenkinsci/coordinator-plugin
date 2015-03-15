@@ -54,7 +54,17 @@ public class CoordinatorBuild extends Build<CoordinatorProject, CoordinatorBuild
 	
 	private TreeNode originalExecutionPlan;
 	
+	private TreeNode defaultExecutionPlan;
+	
 	private transient Map<String, Integer> tableRowIndexMap;
+	
+	public CoordinatorBuild(CoordinatorProject project) throws IOException {
+		super(project);
+	}
+
+	public CoordinatorBuild(CoordinatorProject project, File buildDir) throws IOException {
+        super(project, buildDir);
+    }
 	
 	/*package*/ TreeNode getOriginalExecutionPlan() {
 		return originalExecutionPlan;
@@ -63,15 +73,16 @@ public class CoordinatorBuild extends Build<CoordinatorProject, CoordinatorBuild
 	public void setOriginalExecutionPlan(TreeNode originalExecutionPlan) {
 		this.originalExecutionPlan = originalExecutionPlan;
 	}
-
-	public CoordinatorBuild(CoordinatorProject project) throws IOException {
-		super(project);
+	
+	public TreeNode getDefaultExecutionPlan() {
+		return defaultExecutionPlan;
 	}
 
-	public CoordinatorBuild(CoordinatorProject project, File buildDir) throws IOException {
-        super(project, buildDir);
-    }
+	public void setDefaultExecutionPlan(TreeNode defaultExecutionPlan) {
+		this.defaultExecutionPlan = defaultExecutionPlan;
+	}
 
+	
 	public void addOldActions(List<? extends Action> oldActions) {
 		this.oldActions.add(oldActions);
 	}
