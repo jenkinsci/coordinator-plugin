@@ -176,7 +176,7 @@ public class TreeNode {
 		clone.id = this.id;
 		clone.text = this.text;
 		clone.type = this.type;
-		clone.state = this.state;
+		clone.state = this.state.clone();
 		clone.parent = this.parent;
 		clone.buildNumber = this.buildNumber;
 		if(deep){
@@ -203,6 +203,16 @@ public class TreeNode {
 	    //public String type; // it's weird that type in state doesnot change as ui changes
 	    
 	    public State(){}
+	    
+		public State clone() {
+			State clone = new State();
+			clone.checked = this.checked;
+			clone.disabled = this.disabled;
+			clone.opened = this.opened;
+			clone.selected = this.opened;
+			clone.undetermined = this.undetermined;
+			return clone;
+		}
 	}
 	
 	public static TreeNode fromString(String jsonStr){
