@@ -1,0 +1,53 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url 'http://repo.jenkins-ci.org/releases/'
+        }
+    }
+    dependencies {
+        classpath 'org.jenkins-ci.tools:gradle-jpi-plugin:0.21.0'
+    }
+}
+
+plugins {
+    id "org.jenkins-ci.jpi" version "0.21.0"
+}
+
+apply plugin: 'jpi'
+group = "org.jenkins-ci.plugins"
+version = "1.4.1-SNAPSHOT"
+
+jenkinsPlugin {
+    coreVersion = "1.625.3"
+    displayName = "Jenkins Coordinator Plugin"
+    url = "http://wiki.jenkins-ci.org/display/JENKINS/Coordinator"
+    gitHubUrl = "https://github.com/jenkinsci/coordinator-plugin"
+    shortName = "coordinator"
+    fileExtension = 'jpi'
+
+    developers {
+        developer {
+            id "ace-han"
+            name "Ace Han"
+            email "ace.jl.han@gmail.com"
+        }
+        developer {
+            id "kymair"
+            name "Jindi Wu"
+            email "kymair@gmail.com"
+        }
+    }
+
+    dependencies {
+        optionalJenkinsPlugins 'org.jenkins-ci.plugins:matrix-project:1.4.1@jar'
+    }
+}
+
+dependencies {
+    compile group: 'cglib', name: 'cglib-nodep', version: '3.1'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}
