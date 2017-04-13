@@ -37,6 +37,11 @@ jenkinsPlugin {
             name "Jindi Wu"
             email "kymair@gmail.com"
         }
+        developer {
+            id "philmadden83"
+            name "Phil Madden"
+            email "philmadden83@gmail.com"
+        }
     }
 
     dependencies {

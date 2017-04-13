@@ -193,7 +193,7 @@ public class PerformExecutor {
 	}
 
 	ArrayList<Action> prepareJobActions(
-			final AbstractProject<?, ?> atomicProject) {
+			final Job<?, ?> atomicProject) {
 		final ArrayList<Action> actions = new ArrayList<Action>(3);
 		// make it only last cause visible instead of the entire series of causes  
 		UpstreamCause upstreamCause = new UpstreamCause((Run<?, ?>)this.coordinatorBuild);
@@ -269,32 +269,37 @@ public class PerformExecutor {
 		}
 	}
 
-	private AbstractProject<?, ?> prepareProxiedProject(final TreeNode node) {
-		AbstractProject atomicProject = (AbstractProject<?, ?>) getProject(node);
-		if(atomicProject == null){
-			formattedLog("Atomic Job: %s not found\n", node.getText());
-			onAtomicJobFailure(node);
-			return null;
+	private Item prepareProxiedProject(final TreeNode node) {
+		try {
+			Job atomicProject = (Job<?, ?>) getProject(node);
+			if (atomicProject == null) {
+				formattedLog("Atomic Job: %s not found\n", node.getText());
+				onAtomicJobFailure(node);
+				return null;
+			}
+			if (!atomicProject.isBuildable()) {
+				formattedLog("Atomic Job: %s is either disabled or new job's configuration not saved[refer to hudson.model.Job#isHoldOffBuildUntilSave]\n",
+						node.getText());
+				onAtomicJobFailure(node);
+				return null;
+			}
+			Enhancer en = new Enhancer();
+			en.setClassLoader(this.getClass().getClassLoader());
+			en.setSuperclass(atomicProject.getClass());
+			en.setCallback(new InjectedProjectProxy(atomicProject, node));
+			atomicProject = (AbstractProject<?, ?>) en.create(new Class<?>[]{
+							ItemGroup.class, String.class},
+					new Object[]{atomicProject.getParent(), atomicProject.getName()});
+			return atomicProject;
+		} catch (RuntimeException e) {
+			listener.getLogger().print(e.getMessage());
 		}
-		if(!atomicProject.isBuildable()){
-			formattedLog("Atomic Job: %s is either disabled or new job's configuration not saved[refer to hudson.model.Job#isHoldOffBuildUntilSave]\n", 
-					node.getText());
-			onAtomicJobFailure(node);
-			return null;
-		}
-		Enhancer en = new Enhancer();
-		en.setClassLoader(this.getClass().getClassLoader());
-		en.setSuperclass(atomicProject.getClass());
-		en.setCallback(new InjectedProjectProxy(atomicProject, node));
-		atomicProject = (AbstractProject<?, ?>) en.create(new Class<?>[] {
-				ItemGroup.class, String.class },
-				new Object[] { atomicProject.getParent(), atomicProject.getName()});
-		return atomicProject;
+		return null;
 	}
 
 
 	private ParametersAction prepareParametersAction(
-			AbstractProject<?, ?> atomicProject) {
+			Job<?, ?> atomicProject) {
 		ParametersDefinitionProperty atomicProjectPdp = atomicProject.getProperty(ParametersDefinitionProperty.class);
 		if(atomicProjectPdp == null){
 			return null;
@@ -440,10 +445,10 @@ public class PerformExecutor {
 	 */
 	/*package*/ class InjectedProjectProxy implements MethodInterceptor {
 
-		private AbstractProject<?, ?> originalAtomicProject;
+		private Job<?, ?> originalAtomicProject;
 		private TreeNode node;
 		
-		/*package*/ InjectedProjectProxy(AbstractProject<?, ?> project, TreeNode node) {
+		/*package*/ InjectedProjectProxy(Job<?, ?> project, TreeNode node) {
 			this.originalAtomicProject = project;
 			this.node = node;
 		}
@@ -461,7 +466,7 @@ public class PerformExecutor {
 				List<SubTask> subTasks = (List<SubTask>) result;
 				if(subTasks.contains(originalAtomicProject)){
 					int index = subTasks.indexOf(originalAtomicProject);
-					subTasks.add(index, (AbstractProject<?, ?>)obj);
+					subTasks.add(index, (BuildableItem)obj);
 					subTasks.remove(index + 1);
 				}
 			} else if (method.getName().equals("createExecutable")) {
@@ -499,12 +504,12 @@ public class PerformExecutor {
 			// ref #29, atomic jobs not found when security is enabled 
 			// make coordinator job be able to kick off those atomic jobs without READ permission as designed 
 			SecurityContextHolder.getContext().setAuthentication(auth);
-			AbstractProject<?, ?> atomicProject = prepareProxiedProject(node);
+			Item atomicProject = prepareProxiedProject(node);
 			if(atomicProject == null) return;
-			List<Action> actions = prepareJobActions(atomicProject);
+			List<Action> actions = prepareJobActions((Job<?,?>) atomicProject);
 			formattedLog("Atomic Job ( %s ) Triggered\n", jobName);
-			QueueTaskFuture<Executable> future = getRunningFuture(node, atomicProject, actions);
-			AbstractBuild<?, ?> targetBuild;
+			QueueTaskFuture<Executable> future = getRunningFuture(node, (BuildableItem) atomicProject, actions);
+			Run<?, ?> targetBuild;
 			if(future == null) return;
 			// TODO should make it configurable
 			int time = 8;
@@ -537,7 +542,7 @@ public class PerformExecutor {
 
 		@SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
 		private QueueTaskFuture<Executable> getRunningFuture(TreeNode node,	
-				AbstractProject<?, ?> atomicProject, List<Action> actions) {
+				BuildableItem atomicProject, List<Action> actions) {
 			Jenkins instance = Jenkins.getInstance();
 			if(instance == null) {
 				throw new IllegalStateException("Jenkins is not ready.");

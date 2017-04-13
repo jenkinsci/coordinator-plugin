@@ -257,14 +257,14 @@ public class CoordinatorBuild extends Build<CoordinatorProject, CoordinatorBuild
         return abi;
     }
 
-    private AbstractBuild<?, ?> retrieveTargetBuild(String projectName,
+    private Run<?, ?> retrieveTargetBuild(String projectName,
                                                     int buildNumber){
         Jenkins jenkins = Jenkins.getInstance();
         if(jenkins == null) {
             throw new IllegalStateException("Jenkins is not started yet...");
         }
 
-        AbstractProject<?, ?> project = (AbstractProject<?, ?>)jenkins.getItemByFullName(projectName);
+        Job<?, ?> project = (Job<?, ?>)jenkins.getItemByFullName(projectName);
         if(project == null){
             return null;
         }
@@ -320,7 +320,7 @@ public class CoordinatorBuild extends Build<CoordinatorProject, CoordinatorBuild
     public static class AtomicBuildInfo {
         public TreeNode treeNode;
         public int tableRowIndex; // for odd or even in page rendering
-        public AbstractBuild<?, ?> build;
+        public Run<?, ?> build;
 
         public List<AtomicBuildInfo> children;
     }

@@ -25,6 +25,11 @@
 			<name>Jindi Wu</name>
 			<email>kymair@gmail.com</email>
 		</developer>
+		<developer>
+			<id>philmadden83</id>
+			<name>Phil Madden</name>
+			<email>philmadden83@gmail.com</email>
+		</developer>
 	</developers>
 
 	<issueManagement>
