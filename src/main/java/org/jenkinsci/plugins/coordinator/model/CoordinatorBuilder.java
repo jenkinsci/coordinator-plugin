@@ -53,8 +53,8 @@ public class CoordinatorBuilder extends Builder {
 		
 		CoordinatorBuild cb = (CoordinatorBuild) build;
 		
-		// TODO make this 10 configurable
-		PerformExecutor performExecutor = new PerformExecutor(cb, listener, 10);
+		// TODO make this 30 configurable
+		PerformExecutor performExecutor = new PerformExecutor(cb, listener, 30);
 		return performExecutor.execute();
 	}
 	
